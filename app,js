@@ -1,0 +1,56 @@
+// Variabili per la scena e la camera
+let scene, camera, renderer;
+let model, mixer; // Per il modello 3D e le animazioni
+let clock = new THREE.Clock();
+let speechSynthesis = window.speechSynthesis; // Per la sintesi vocale
+
+// Inizializzazione della scena
+function init() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Luce nella scena
+  const light = new THREE.AmbientLight(0x404040); // luce ambientale
+  scene.add(light);
+
+  // Caricamento del modello 3D
+  const loader = new THREE.GLTFLoader();
+  loader.load('m.glb', (gltf) => {
+    model = gltf.scene;
+    scene.add(model);
+    mixer = new THREE.AnimationMixer(model);
+
+    // Se il modello ha animazioni, aggiungile
+    gltf.animations.forEach((clip) => mixer.clipAction(clip).play());
+  });
+
+  // Impostazioni della camera
+  camera.position.z = 5;
+
+  // Avvio della funzione di rendering
+  animate();
+}
+
+// Funzione di animazione continua
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (mixer) mixer.update(clock.getDelta());
+  renderer.render(scene, camera);
+}
+
+// Funzione per far parlare il personaggio
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(utterance);
+}
+
+// Aggiungi un'azione per far parlare il personaggio al caricamento della pagina
+window.onload = function () {
+  init();
+  speak("Ciao, come posso aiutarti oggi?");
+};
+
